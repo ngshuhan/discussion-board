@@ -1,0 +1,12 @@
+<div ng-controller="userController">
+	<div id="a">
+		<nav>
+			<a href="#/dashboard">Dashboard</a> | <a href="#/">Logout</a>
+		</nav>
+	</div>
+	<h3>Username: {{showUser.name}}</h3>
+	<h3>Posted....</h3>
+	<p class="indented">{{showUser.topics.length}} Topic</p>
+	<p class="indented">{{showUser.posts.length}} Posts</p>
+	<p class="indented">{{showUser.comments.length}} Comments</p>
+</div>

@@ -1,0 +1,36 @@
+<div ng-controller="dashboardController">
+	<h1>Welcome, {{user.name}}!</h1>
+	<input class="search" type="text" placeholder="search...." ng-model="filter_name">
+	<table>
+		<tr>
+			<th>Category</th>
+			<th>Topic</th>
+			<th>User Name</th>
+			<th>Posts</th>
+		</tr>
+		<tr ng-repeat="topic in topics | filter:filter_name | orderBy: 'created_at':true ">
+			<td>{{topic._category.name}}</td>
+			<td><a href="#/topic/{{topics.indexOf(topic)}}">{{topic.text}}</a></td>
+			<td><a href="#/users/{{topic._user._id}}">{{topic._user.name}}</a></td>
+			<td>{{topic.post.length}}</td>
+
+		</tr>
+	</table>
+
+	<form id="topic_form">
+		<legend>Add a new Topic</legend>
+		<div>
+			<label>Topic:</label> <input type="text" ng-model="newTopic.text">
+		</div>
+		<div>
+			<label>Description:</label> <textarea ng-model="newTopic.description"></textarea>
+		</div>
+		<div>
+			<label>Cateogry:</label>
+			<select ng-model="newTopic.category" ng-options="category.name for category in categories">
+				<option value="">----choose categories---</option>
+			</select>
+		</div>
+		<input type="submit" value="submit" ng-click="addTopic()">
+	</form>
+</div>

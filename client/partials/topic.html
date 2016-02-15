@@ -1,0 +1,45 @@
+<div ng-controller="topicController">
+	<div id="a">
+		<nav>
+			<a href="#/dashboard">Dashboard</a> | <a href="#/">Logout</a>
+		</nav>
+	</div>
+	
+	
+	<div id="topic">
+		<h3><a href="#/users/{{topic._user._id}}">{{topic._user.name}}</a> posted a topic: </h3>
+		<div class="indented">
+			<p class="bold" style="font-style:italic;">{{topic.text}}</p>
+			<p style="margin-top:20px;">Description: {{topic.description}}</p>
+		</div>
+		<h3>Post your answer here...</h3>
+		<form id="post" style="width:50%;">
+			<textarea  style="width:95%;" class="indented" ng-model="newPost.text"></textarea><br>
+			<input style="margin-top:20px;" class="button" style="float:right;" type="submit" value="post" ng-click="addPost()">
+		</form><hr style="margin-top:100px;">
+	</div>
+	<div id="lower_content" ng-repeat="post in topic.post | orderBy: 'created_at':true ">
+		<div>
+			<p style="display:inline-block;"><a href="#/users/{{post._user._id}}">{{post._user.name}}</a>: {{post.text}}</p>
+			<button ng-hide="post._user.name==user.name" ng-click="downVote(topic.post.indexOf(post))"><span style="color:red;">{{post.downvote}}</span>Downvote</button>
+			<button ng-hide="post._user.name==user.name" ng-click="upVote(topic.post.indexOf(post))"><span style="color:green;">{{post.upvote}}</span>Upvote</button> 
+			<div class="indented" ng-repeat="comment in post.comments">
+				<p style="display:inline-block;"><a href="#/users/{{comment._user._id}}">{{comment._user.name}}</a>: {{comment.text}}</p>
+
+			</div>
+
+			<form style="width:50%;">
+				<textarea  style="width:95%;" class="indented" ng-model="post.newComment"></textarea><br>
+				<input style="margin-top:20px;" class="button" type="submit" value="Comment" ng-click="addComment(topic.post.indexOf(post))">
+			</form><hr style="margin-top:100px;">
+		</div>
+		
+
+
+	</div>
+	
+	
+
+
+
+</div>

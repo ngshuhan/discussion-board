@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="discussion_app">
+<head>
+	<meta charset="UTF-8">
+	<title>Login and Registration </title>
+	<link rel="stylesheet" href="css/index.css">
+	<script src='https://ajax.googleapis.com/ajax/libs/angularjs/1.3.5/angular.js'/></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.5/angular-route.min.js"></script>
+	<script type ="text/javascript" src="/socket.io/socket.io.js"></script>
+
+	<script>
+		var discussion_app = angular.module('discussion_app', ['ngRoute']);
+		discussion_app.config(function($routeProvider) {
+			$routeProvider
+			.when('/',{
+				templateUrl:'partials/user.html'
+			})
+			.when('/dashboard', {
+				templateUrl:'partials/dashboard.html'
+			})
+			.when('/topic/:index', {
+				templateUrl:'partials/topic.html',
+				controller: 'topicController'
+			})
+			.when('/users/:id', {
+				templateUrl:'partials/profile.html',
+				controller: 'userController'
+
+			})
+		
+		})
+
+
+
+
+
+
+		discussion_app.factory('userFactory',function($http) {
+			var factory = {};
+			var user = [];
+			factory.addUser = function(newUser,callback) {
+				$http.post('/users',newUser).success(function(res) {
+					factory.user = res;
+					callback(user);
+				})
+			}
+
+			factory.showUser = function(id,callback) {
+				$http.get('/users/'+id).success(function(res) {
+					callback(res);
+				})
+			}
+
+			return factory;
+		})
+
+
+		discussion_app.factory('socket', ['$rootScope', function($rootScope) {
+			  var socket = io.connect();
+
+			  return {
+			    on: function(eventName, callback){
+			      socket.on(eventName, callback);
+			    },
+			    emit: function(eventName, data) {
+			      socket.emit(eventName, data);
+			    }
+			  };
+		}]);
+
+
+		discussion_app.factory('categoryFactory',function($http) {
+			var factory = {};
+			var categories = [];
+			factory.getCategories = function(callback) {
+				$http.get('/categories').success(function(res) {
+					categories = res;
+					callback(categories);
+				})
+			}
+			return factory;
+		})
+
+		discussion_app.factory('topicFactory',function($http) {
+			var factory = {};
+			var topics = [];
+			var currentTopicId = "";
+
+			
+
+			factory.getTopics = function(callback) {
+				$http.get('/topics').success(function(res) {
+					topics = res;
+					callback(topics);
+
+				})
+			}
+
+			factory.addTopic = function(newTopic,callback) {
+				$http.post('/topics',newTopic).success(function(res) {
+					topics.push(res);
+					callback(res);
+				})
+			}
+
+			factory.showTopic = function(index,callback) {
+				var id = topics[index]._id;
+				currentTopicId = id;
+
+				$http.get('/topics/'+id).success(function(res) {
+					callback(res);
+				})
+			}
+
+			factory.addPost = function(user,newPost,callback) {
+				var userId = user._id;
+
+				$http.post('/topics/'+currentTopicId,{text:newPost.text,user:userId}).success(function(res) {
+					callback(res);
+				})
+			}
+
+			factory.updatePost = function(postId,action,callback) {
+				
+				$http.patch('/posts/'+postId,{vote:action}).success(function(res) {
+					callback(res);
+
+				})
+			}
+
+			factory.addComment = function(user,post,callback) {
+				var userId = user._id;
+				var postId = post._id;
+				$http.post('/posts/'+postId,{user:userId,comment:post.newComment}).success(function(res) {
+				
+					callback(res);
+
+				})
+
+			}
+
+
+			return factory;
+		})
+
+		discussion_app.controller('userController',function($rootScope,$log,$scope,userFactory,$location,$routeParams) {
+	
+			$scope.addUser = function() {			
+				userFactory.addUser($scope.newUser,function(user) {
+					$scope.user = user;
+					$location.path('/dashboard');
+				});
+			}
+
+			$scope.showUser = userFactory.showUser($routeParams.id,function(res) {
+				$scope.showUser = res;
+
+			})
+
+
+
+		
+		})
+
+		discussion_app.controller('dashboardController',function($scope,userFactory,categoryFactory,$location,topicFactory,socket) {
+
+			$scope.user = userFactory.user;
+			if ($scope.user == undefined) {
+				$location.path('/');
+			}
+			$scope.categories = categoryFactory.getCategories(function(categories) {
+				$scope.categories = categories;
+			})
+
+			$scope.topics = topicFactory.getTopics(function(topics) {
+				$scope.topics = topics;
+			})
+
+			
+			$scope.addTopic = function() {
+				$scope.newTopic.userId = $scope.user._id;
+				topicFactory.addTopic($scope.newTopic,function(res) {
+					socket.emit('newTopic',res);
+				})
+				$scope.newTopic = {};
+			}
+
+			socket.on('updateTopic',function(data) {
+				$scope.$apply(function() {
+					$scope.topics.push(data);
+				})
+			})
+			socket.on('updatePost',function(data) {
+				console.log('i got the update psot mesg..');
+				for (var i = 0; i < $scope.topics.length; i++) {
+					if ($scope.topics[i]._id == data.postId) {
+						$scope.$apply(function() {
+							$scope.topics[i].post.push(data.post);
+						})
+					}
+				}
+
+
+			})
+		})
+
+		discussion_app.controller('topicController',function($rootScope,$scope,topicFactory,$routeParams,$log,userFactory,socket) {
+			$scope.user = userFactory.user;
+
+			$scope.topic = topicFactory.showTopic($routeParams.index,function(res) {
+				$scope.topic = res;
+
+			})
+
+			$scope.addPost = function() {
+				topicFactory.addPost($scope.user,$scope.newPost,function(res) {
+
+					$scope.topic.post.push(res);
+					socket.emit('newPost',{postId: $scope.topic._id,post:res});
+				})
+				$scope.newPost = {};
+			}
+
+			$scope.upVote = function(index) {
+				var postId = $scope.topic.post[index]._id;
+
+				topicFactory.updatePost(postId,"upVote",function(res) {
+
+					$scope.topic.post[index].upvote = res.upvote;
+				})
+	
+			}
+
+
+			$scope.downVote = function(index) {
+				var postId = $scope.topic.post[index]._id;
+
+				topicFactory.updatePost(postId,"downVote",function(res) {
+
+					$scope.topic.post[index].downvote = res.downvote;
+				})
+
+			}
+
+
+			$scope.addComment = function(index) {
+				console.log("post");
+				topicFactory.addComment($scope.user,$scope.topic.post[index],function(res) {
+					console.log(res);
+					$scope.topic.post[index].comments.push(res);
+
+				})
+				$scope.topic.post[index].newComment = "";
+
+			}
+
+
+		})
+
+	
+
+
+
+
+
+	
+	</script>
+</head>
+<body>
+	<div id="container">
+		<div ng-view=""></div>
+	</div>
+	
+</body>
+</html>
