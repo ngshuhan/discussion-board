@@ -1,12 +1,32 @@
 <div ng-controller="userController">
-	<div id="a">
-		<nav>
-			<a href="#/dashboard">Dashboard</a> | <a href="#/">Logout</a>
-		</nav>
+	<nav class="navbar navbar-default">
+		<div class="container">
+			<ul class="nav navbar-right navbar-nav">
+				<li>
+					<a href="#/dashboard">Dashboard</a>
+				</li>
+				<li>
+					<a ng-click="logout()">Logout</a>
+				</li>
+			</ul>
+		</div>
+		
+	</nav>
+	<div class="container">
+
+		<h3>Username: {{showUser.name}}</h3>
+		<div class="col-sm-10">
+			<h3>Posted....</h3>
+			<div class="col-sm-8">
+				<p>{{showUser.topics.length}} Topic</p>
+				<p>{{showUser.posts.length}} Posts</p>
+				<p>{{showUser.comments.length}} Comments</p>
+			</div>
+		</div>
+		
+			
 	</div>
-	<h3>Username: {{showUser.name}}</h3>
-	<h3>Posted....</h3>
-	<p class="indented">{{showUser.topics.length}} Topic</p>
-	<p class="indented">{{showUser.posts.length}} Posts</p>
-	<p class="indented">{{showUser.comments.length}} Comments</p>
+		
+		
+	
 </div>

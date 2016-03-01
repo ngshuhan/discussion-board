@@ -1,10 +1,14 @@
 <div ng-controller="userController">
-	<div id="welcome">
+	<div class="row col-sm-2" style="margin:200px 0px 0px 200px;">
 		<p>Hello!</p>
 		<p>Please enter your name to join and share your ideas</p>
-		<form>
-			<input type="text" ng-model="newUser.name">
-			<button ng-click="addUser()">Enter</button>
+		<form class="form">
+			<div class="form-group">
+				<input class="form-control" type="text" ng-model="newUser.name">
+
+			</div>
+	
+			<button class="btn btn-primary" ng-click="addUser()">Enter</button>
 		</form>
 	</div>
 </div>

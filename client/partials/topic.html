@@ -1,45 +1,69 @@
 <div ng-controller="topicController">
-	<div id="a">
-		<nav>
-			<a href="#/dashboard">Dashboard</a> | <a href="#/">Logout</a>
-		</nav>
-	</div>
-	
-	
-	<div id="topic">
-		<h3><a href="#/users/{{topic._user._id}}">{{topic._user.name}}</a> posted a topic: </h3>
-		<div class="indented">
-			<p class="bold" style="font-style:italic;">{{topic.text}}</p>
-			<p style="margin-top:20px;">Description: {{topic.description}}</p>
+	<nav class="navbar navbar-default">
+		<div class="container">
+			<ul class="nav navbar-nav navbar-right">
+				<li><a href="#/dashboard">Dashboard</a></li>
+				<li><a style="cursor:pointer;" ng-click="logout()">Logout</a></li>
+			</ul>
+		</div>
+	</nav>
+	<div class="container">
+		<h3><a href="#/users/{{topic._user._id}}">{{topic._user.name}}</a> posted a topic: </h3><br>
+		<div>
+			<em><strong>{{topic.text}}</strong></em><br>
+			<p>Description: {{topic.description}}</p>
 		</div>
 		<h3>Post your answer here...</h3>
-		<form id="post" style="width:50%;">
-			<textarea  style="width:95%;" class="indented" ng-model="newPost.text"></textarea><br>
-			<input style="margin-top:20px;" class="button" style="float:right;" type="submit" value="post" ng-click="addPost()">
-		</form><hr style="margin-top:100px;">
-	</div>
-	<div id="lower_content" ng-repeat="post in topic.post | orderBy: 'created_at':true ">
-		<div>
-			<p style="display:inline-block;"><a href="#/users/{{post._user._id}}">{{post._user.name}}</a>: {{post.text}}</p>
-			<button ng-hide="post._user.name==user.name" ng-click="downVote(topic.post.indexOf(post))"><span style="color:red;">{{post.downvote}}</span>Downvote</button>
-			<button ng-hide="post._user.name==user.name" ng-click="upVote(topic.post.indexOf(post))"><span style="color:green;">{{post.upvote}}</span>Upvote</button> 
-			<div class="indented" ng-repeat="comment in post.comments">
-				<p style="display:inline-block;"><a href="#/users/{{comment._user._id}}">{{comment._user.name}}</a>: {{comment.text}}</p>
+		<div class="row">
+			<div class="col-sm-10">
+				<form class="form col-sm-8">
+				<div class="form-group">
+					<textarea rows="4" class="form-control"ng-model="newPost.text"></textarea>
+				</div>
+					<input class="btn btn-default pull-right" type="submit" value="post" ng-click="addPost()">
+				</form>
+			</div>
+		</div>
+		<div class="row">
+			<hr>
+		</div>
+		<div class="row">
+			<div class="col-sm-10">
+				<div class="col-sm-8" ng-repeat="post in topic.post | orderBy: 'created_at':true ">
+					<div class="row">
+						<div class="col-sm-8">
+							<p>
+								<a href="#/users/{{post._user._id}}">
+									<strong>{{post._user.name}}</strong>
+								</a>: {{post.text}}
+							</p>
+						</div>
+						<div class="pull-right">
+							<button class="btn btn-success" ng-hide="post._user.name==user.name" ng-click="upVote(topic.post.indexOf(post))">{{post.upvote}}&nbsp;<span class="glyphicon glyphicon-thumbs-up"></span></button>
+
+							<button class="btn btn-danger" ng-hide="post._user.name==user.name" ng-click="downVote(topic.post.indexOf(post))">{{post.downvote}}&nbsp;<span class="glyphicon glyphicon-thumbs-down"></span></button>
+						</div>
+					</div><br>
+					<div class="col-sm-10">
+						<div ng-repeat="comment in post.comments">
+							<p><a href="#/users/{{comment._user._id}}"><strong>{{comment._user.name}}</strong></a>: {{comment.text}}</p>
+						</div>
+						<form class="form-horizontal col-sm-offset-1">
+							<div class="form-group">
+								<textarea class="form-control" ng-model="post.newComment"></textarea>
+							</div>
+							<input class=" pull-right btn btn-default" type="submit" value="Comment" ng-click="addComment(topic.post.indexOf(post))">
+						</form>
+					</div><br>
+					<div class="col-sm-12">
+						<hr>
+					</div>
+					
+				</div>
+
 
 			</div>
 
-			<form style="width:50%;">
-				<textarea  style="width:95%;" class="indented" ng-model="post.newComment"></textarea><br>
-				<input style="margin-top:20px;" class="button" type="submit" value="Comment" ng-click="addComment(topic.post.indexOf(post))">
-			</form><hr style="margin-top:100px;">
 		</div>
-		
-
-
 	</div>
-	
-	
-
-
-
 </div>
