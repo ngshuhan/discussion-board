@@ -93,7 +93,7 @@
 			return factory;
 		})
 
-		discussion_app.factory('topicFactory',function($http) {
+		discussion_app.factory('topicFactory',function($http,$sessionStorage) {
 			var factory = {};
 			var topics = [];
 			var currentTopicId = "";
@@ -103,10 +103,16 @@
 			factory.getTopics = function(callback) {
 				$http.get('/topics').success(function(res) {
 					topics = res;
+					$sessionStorage.topics = res;
+
+					
 					callback(topics);
 
 				})
 			}
+
+
+
 
 			factory.addTopic = function(newTopic,callback) {
 				$http.post('/topics',newTopic).success(function(res) {
@@ -116,16 +122,23 @@
 			}
 
 			factory.showTopic = function(index,callback) {
-				var id = topics[index]._id;
+	
+				var id = $sessionStorage.topics[index]._id;
 				currentTopicId = id;
 
 				$http.get('/topics/'+id).success(function(res) {
+					$sessionStorage.topic = res;
 					callback(res);
 				})
 			}
 
-			factory.addPost = function(user,newPost,callback) {
-				var userId = user._id;
+
+			factory.topic = function() {
+				return $sessionStorage.topic;
+			}
+
+			factory.addPost = function(newPost,callback) {
+				var userId = $sessionStorage.user._id;
 
 				$http.post('/topics/'+currentTopicId,{text:newPost.text,user:userId}).success(function(res) {
 					callback(res);
@@ -140,8 +153,8 @@
 				})
 			}
 
-			factory.addComment = function(user,post,callback) {
-				var userId = user._id;
+			factory.addComment = function(post,callback) {
+				var userId = $sessionStorage.user._id;
 				var postId = post._id;
 				$http.post('/posts/'+postId,{user:userId,comment:post.newComment}).success(function(res) {
 				
@@ -219,7 +232,7 @@
 				})
 			})
 			socket.on('updatePost',function(data) {
-				console.log('i got the update psot mesg..');
+			
 				for (var i = 0; i < $scope.topics.length; i++) {
 					if ($scope.topics[i]._id == data.postId) {
 						$scope.$apply(function() {
@@ -232,16 +245,34 @@
 			})
 		})
 
-		discussion_app.controller('topicController',function($rootScope,$scope,topicFactory,$routeParams,$log,userFactory,socket,$location) {
+		discussion_app.controller('topicController',function($rootScope,$scope,topicFactory,$routeParams,$log,userFactory,socket,$location,$sessionStorage) {
 			$scope.user = userFactory.user;
+
 
 			$scope.topic = topicFactory.showTopic($routeParams.index,function(res) {
 				$scope.topic = res;
-
 			})
 
+
+
+
+
+
+
+
+
+
+			// $scope.$storage = $sessionStorage;
+
+
+
+		
+
+
+			
+
 			$scope.addPost = function() {
-				topicFactory.addPost($scope.user,$scope.newPost,function(res) {
+				topicFactory.addPost($scope.newPost,function(res) {
 
 					$scope.topic.post.push(res);
 					socket.emit('newPost',{postId: $scope.topic._id,post:res});
@@ -272,9 +303,9 @@
 
 
 			$scope.addComment = function(index) {
-				console.log("post");
-				topicFactory.addComment($scope.user,$scope.topic.post[index],function(res) {
-					console.log(res);
+
+				topicFactory.addComment($scope.topic.post[index],function(res) {
+	
 					$scope.topic.post[index].comments.push(res);
 
 				})
@@ -286,17 +317,7 @@
 				userFactory.logout();
 				$location.path('/');
 			}
-
-
 		})
-
-	
-
-
-
-
-
-	
 	</script>
 </head>
 <body>
